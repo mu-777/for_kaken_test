@@ -9,8 +9,8 @@ from std_msgs.msg import Header
 from geometry_msgs.msg import Twist, Pose
 
 DEFAULT_NODE_NAME = 'camera_node'
-IP_ADDRESS = '127.0.0.1'
-PORT = 8888
+IP_ADDRESS = '192.168.0.3'
+PORT = 5555
 BUFFER_SIZE = 1024
 
 
@@ -22,10 +22,11 @@ class RelativePosePublisher(object):
         self._kohga3_1_pose = RelativePoseStamped(header=Header(stamp=rospy.Time.now()),
                                                   target='kohga3_1')
         self._clientsock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._clientsock.bind((IP_ADDRESS, PORT))
+
 
     def activate(self):
         rospy.Subscriber('kohga3_1_twist', Twist, self._twist_callback)
-        self._clientsock.bind((IP_ADDRESS, PORT))
         rospy.loginfo('RelativePosePublisher is activated!')
         return self
 
@@ -36,7 +37,8 @@ class RelativePosePublisher(object):
         self._kohga3_1_pose.pose.position.z += twist.linear.z
 
     def update(self):
-        # recv_str, addr = self._clientsock.recvfrom(BUFFER_SIZE)
+        recv_str, addr = self._clientsock.recv(BUFFER_SIZE)
+        print(recv_str)
         # self._kohga3_1_pose.header.stamp = rospy.Time.now()
         # self._kohga3_1_pose.pose = self._unpack_recv_str(recv_str)
         return self
@@ -46,6 +48,9 @@ class RelativePosePublisher(object):
 
     def publish_data(self):
         self._pose_publisher.publish(self._kohga3_1_pose)
+
+    def close(self):
+        self._clientsock.close()
 
 # --------------------------------------------
 if __name__ == '__main__':
@@ -57,3 +62,5 @@ if __name__ == '__main__':
     while not rospy.is_shutdown():
         relative_pose_pub.update().publish_data()
         rate_mgr.sleep()
+
+    relative_pose_pub.close()
