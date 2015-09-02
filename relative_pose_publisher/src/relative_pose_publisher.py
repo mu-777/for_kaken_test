@@ -26,6 +26,7 @@ class RelativePosePublisher(object):
     def activate(self):
         rospy.Subscriber('kohga3_1_twist', Twist, self._twist_callback)
         self._clientsock.bind((IP_ADDRESS, PORT))
+        rospy.loginfo('RelativePosePublisher is activated!')
         return self
 
     def _twist_callback(self, twist):
@@ -35,9 +36,9 @@ class RelativePosePublisher(object):
         self._kohga3_1_pose.pose.position.z += twist.linear.z
 
     def update(self):
-        recv_str, addr = self._clientsock.recvfrom(BUFFER_SIZE)
-        self._kohga3_1_pose.header.stamp = rospy.Time.now()
-        self._kohga3_1_pose.pose = self._unpack_recv_str(recv_str)
+        # recv_str, addr = self._clientsock.recvfrom(BUFFER_SIZE)
+        # self._kohga3_1_pose.header.stamp = rospy.Time.now()
+        # self._kohga3_1_pose.pose = self._unpack_recv_str(recv_str)
         return self
 
     def _unpack_recv_str(self, str):
